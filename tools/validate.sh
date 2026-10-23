@@ -17,9 +17,9 @@ run_static_checks() {
     # 脱节。这一步要 fontTools 才能逐个码点核对母字体覆盖，而 CI 镜像不装
     # fontTools —— 缺依赖时明确跳过并说明，不假装通过。
     if python3 -c "import fontTools" >/dev/null 2>&1; then
-        PYTHONDONTWRITEBYTECODE=1 python3 tools/net-radio/gen_font.py --check
+        PYTHONDONTWRITEBYTECODE=1 python3 tools/cnr-radio/gen_font.py --check
     else
-        echo "skip: tools/net-radio/gen_font.py --check（当前 python3 无 fontTools；字库清单同步未校验）" >&2
+        echo "skip: tools/cnr-radio/gen_font.py --check（当前 python3 无 fontTools；字库清单同步未校验）" >&2
     fi
 
     actionlint_bin="${ACTIONLINT_BIN:-}"
@@ -44,22 +44,33 @@ run_static_checks() {
     # 本应用的纯逻辑层：电台清单、音量档位、HTTP 头解析与 chunked 剥框。
     # 它们刻意不依赖 ESP-IDF/LVGL，宿主机直接编译。
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_nr_station.c main/nr_station.c \
-        -o "${test_dir}/test_nr_station"
-    "${test_dir}/test_nr_station"
+        tests/test_cr_station.c main/cr_station.c \
+        -o "${test_dir}/test_cr_station"
+    "${test_dir}/test_cr_station"
 
     # 音量档位。
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_nr_volume.c main/nr_volume.c \
-        -o "${test_dir}/test_nr_volume"
-    "${test_dir}/test_nr_volume"
+        tests/test_cr_volume.c main/cr_volume.c \
+        -o "${test_dir}/test_cr_volume"
+    "${test_dir}/test_cr_volume"
 
     # 流媒体协议解析：响应头（分片到达/1xx 跳过/3xx Location/icy 元数据）
     # 与 chunked 状态机（逐字节喂、输出容量不足续传、尾注、坏流）。
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_nr_http.c main/nr_http.c \
-        -o "${test_dir}/test_nr_http"
-    "${test_dir}/test_nr_http"
+        tests/test_cr_hls.c main/cr_hls.c \
+        -o "${test_dir}/test_cr_hls"
+    "${test_dir}/test_cr_hls"
+
+    # TS 解复用（radio.cn HLS 切片）：真实 10 秒切片夹具碎喂，比对参考
+    # 净荷与帧数（431 帧）。夹具缺失（浅克隆）时明确跳过。
+    if [[ -f tests/seg.ts && -f tests/seg_adts.bin ]]; then
+        "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
+            tests/host_ts_check.c main/cr_ts.c \
+            -o "${test_dir}/test_cr_ts"
+        (cd tests && "${test_dir}/test_cr_ts")
+    else
+        echo "skip: test_cr_ts（缺 tests/seg.ts 或 seg_adts.bin 夹具）" >&2
+    fi
 
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Icomponents/bsp/src \
         tests/test_bsp_display_rounding.c components/bsp/src/bsp_display_rounding.c \
