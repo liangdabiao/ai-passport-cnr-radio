@@ -21,7 +21,7 @@ void cr_wifi_start(void (*on_connected)(void), void (*on_disconnected)(void))
     auto &wifi = WifiManager::GetInstance();
     WifiManagerConfig config;
     config.ssid_prefix = "CnrRadio";
-    config.fixed_ap_ssid = "AStock";
+    config.fixed_ap_ssid = "CnrRadio";
     config.language = "zh-CN";
     config.station_hostname = "cnr-radio";
     // english-dict 同款：STA 断线重扫节流。

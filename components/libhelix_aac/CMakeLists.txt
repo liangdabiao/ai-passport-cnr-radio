@@ -7,3 +7,7 @@ idf_component_register(
 )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -O2)
+
+# radio.cn 全平台 AAC-LC（ffprobe 实测），SBR 关闭：省 ~50KB PSInfoSBR，
+# 24KB 静态池即可（宿主/设备同宏，见 aaccommon.h）。
+target_compile_definitions(${COMPONENT_LIB} PRIVATE AAC_DISABLE_SBR)

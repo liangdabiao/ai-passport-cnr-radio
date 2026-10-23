@@ -54,7 +54,10 @@ static const char *TAG = "cr_player";
 #define RETRY_MAX    3           // 会话失败重试（1s/2s/4s 退避）
 #define STARVE_MS    12000       // 持续无新数据判死（切片 10s 一片，留足余量）
 #define RECV_MS      20          // 单次 recv 超时：短到不拦住 DMA 喂数
-#define AAC_ARENA_SIZE (24 * 1024) // AACInitDecoderPre 的静态池（SBR 关）
+#define AAC_ARENA_SIZE (24 * 1024) // AACInitDecoderPre 的池（惰性堆分配）
+#define CR_PLBUF_SIZE 2048     // m3u8 播放列表缓冲
+#define CR_ES_SIZE 4096       // 解复用 ES 暂存
+#define CR_PENDING_SIZE 2048  // socket 原始块（SBR 关）
 
 // 文案进 UI 状态行（16px 一行 ≤13 全角，短句）。
 #define MSG_CONNECT   "连接中…"
@@ -88,25 +91,33 @@ typedef struct {
 } player_t;
 
 static player_t P;
-static int16_t s_pcm[1024 * 2];  // 一帧 PCM 上限（1024 样本 × 2 声道）
-static uint8_t s_staging[STAGING_SIZE];
+// 播放器全部缓冲都是惰性堆分配（见 cr_player_start）：配网门户期 AP+httpd+
+// DHCP 需要堆（真机实测静态占着时 GET / 只剩 9.2KB，页面与 DHCP 随机饿死），
+// 播放器第一次出声时才占内存。
+static int16_t *s_pcm;            // 一帧 PCM 上限（1024 样本 × 2 声道）
+static uint8_t *s_staging;
+static unsigned char *s_aac_arena_bytes;
 static uint8_t s_level = CR_VOLUME_DEFAULT; // 用户音量档（播放器侧副本）
 static uint8_t s_applied_codec_vol;         // 已下发的 codec 音量（0 = 需重下发）
 
-// AAC 解码器静态池：helix 的 AACInitDecoderPre 直接从这块内存切结构体。
-static union {
-    unsigned long long force_align;
-    unsigned char bytes[AAC_ARENA_SIZE];
-} s_aac_arena;
-
-static uint8_t s_pending[2048]; // socket 原始块（cr_ts 的输入侧）
-static uint8_t s_es[4096];        // 解复用出的 ADTS 净荷暂存
+// AAC 解码器池：helix 的 AACInitDecoderPre 从惰性分配的内存切结构体。
+static uint8_t *s_pending; // socket 原始块（cr_ts 的输入侧）
+static uint8_t *s_es;      // 解复用出的 ADTS 净荷暂存
 static size_t s_es_len;
-static cr_ts_t s_ts;
+static cr_ts_t s_ts;       // TS 解复用状态机（内嵌 2KB out，静态可承受）
 static size_t s_pending_len;
-static char s_plbuf[2048];      // m3u8 播放列表整体缓冲
+static char *s_plbuf;      // m3u8 播放列表整体缓冲
 
 static uint8_t cr_level_get(void) { return s_level; }
+
+// cr_ts 的 sink：ES 先落暂存（feed 返回后由主循环泵进环形缓冲）。
+static void es_sink(void *ctx, const uint8_t *data, const size_t n)
+{
+    (void)ctx;
+    if (!s_es || s_es_len + n > 4096) return; // 主循环每轮冲刷，实际到不了
+    memcpy(s_es + s_es_len, data, n);
+    s_es_len += n;
+}
 
 static void publish(const cr_play_state_t state, const char *msg)
 {
@@ -302,7 +313,7 @@ static int fetch_head(const char *host, const int port, const char *path,
         *out_head = buf;
         *out_head_len = head_len;
         const size_t body_have = have - head_len;
-        if (body_have > 0 && body_have <= sizeof(s_pending)) {
+        if (body_have > 0 && body_have <= 2048) {
             memcpy(s_pending, buf + head_len, body_have);
             s_pending_len = body_have;
         }
@@ -316,14 +327,13 @@ static size_t read_small_body(const int sock)
 {
     size_t len = 0;
     if (s_pending_len > 0) {
-        len = s_pending_len < sizeof(s_plbuf) - 1 ? s_pending_len
-                                                  : sizeof(s_plbuf) - 1;
+        len = s_pending_len < CR_PLBUF_SIZE - 1 ? s_pending_len : CR_PLBUF_SIZE - 1;
         memcpy(s_plbuf, s_pending, len);
         s_plbuf[len] = '\0';
         pending_reset();
     }
-    while (len + 1 < sizeof(s_plbuf)) {
-        const int n = read(sock, (uint8_t *)s_plbuf + len, sizeof(s_plbuf) - 1 - len);
+    while (len + 1 < CR_PLBUF_SIZE) {
+        const int n = read(sock, (uint8_t *)s_plbuf + len, CR_PLBUF_SIZE - 1 - len);
         if (n <= 0) break;
         len += (size_t)n;
         s_plbuf[len] = '\0';
@@ -443,15 +453,6 @@ static int decode_write(void)
     return 1;
 }
 
-// cr_ts 的 sink：ES 先落暂存（feed 返回后由主循环泵进环形缓冲）。
-static void es_sink(void *ctx, const uint8_t *data, const size_t n)
-{
-    (void)ctx;
-    if (s_es_len + n > sizeof(s_es)) return; // 主循环每轮都冲刷，实际到不了
-    memcpy(s_es + s_es_len, data, n);
-    s_es_len += n;
-}
-
 // 把 ES 暂存泵进环形缓冲（解码腾出空间后反复调用直到清空）。
 static void es_pump(void)
 {
@@ -462,15 +463,20 @@ static void es_pump(void)
     }
 }
 
+typedef enum { SEG_OK = 0, SEG_ABORT, SEG_FAIL } seg_result_t;
+
 // 下载一个切片：边收边解（socket 块 → cr_ts 解复用 → ES 泵进环 → 高水位
-// 切去解码到低水位）。返回 false = 失败/新请求（*aborted 置位表示新请求）。
-static bool stream_segment(const char *host, const int port, const char *seg_url,
-                           const uint32_t my_serial, bool *aborted,
-                           int64_t *last_data_ms)
+// 切去解码到低水位）。SEG_FAIL 只是**这一段**失败——直播里丢一段无感，
+// 调用方刷新播放列表跳到直播边即可，不杀会话（真机教训：网络偶发抽风
+// 每 ~2 分钟一段失败，旧逻辑整会话重连，听感断续）。
+static seg_result_t stream_segment(const char *host, const int port,
+                                   const char *seg_url,
+                                   const uint32_t my_serial, bool *aborted,
+                                   int64_t *last_data_ms)
 {
     *aborted = false;
     const int sock = tcp_open(host, port);
-    if (sock < 0) return false;
+    if (sock < 0) return SEG_FAIL;
 
     char *head = NULL;
     size_t head_len = 0;
@@ -478,7 +484,7 @@ static bool stream_segment(const char *host, const int port, const char *seg_url
     if (fetch_head(host, port, seg_url, sock, &head, &head_len) != 0) {
         free(head);
         close(sock);
-        return false;
+        return SEG_FAIL;
     }
     free(head);
     // 头之后顺带读到的切片开头也走解复用。
@@ -492,10 +498,10 @@ static bool stream_segment(const char *host, const int port, const char *seg_url
         if (P.serial != my_serial) {
             close(sock);
             *aborted = true;
-            return false;
+            return SEG_ABORT;
         }
 
-        const int n = read(sock, s_pending, sizeof(s_pending));
+        const int n = read(sock, s_pending, CR_PENDING_SIZE);
         if (n > 0) {
             *last_data_ms = now_ms();
             (void)cr_ts_feed(&s_ts, s_pending, (size_t)n, es_sink, NULL);
@@ -506,7 +512,7 @@ static bool stream_segment(const char *host, const int port, const char *seg_url
             return true; // 切片完成（服务端关流）
         } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
             close(sock);
-            return false;
+            return SEG_FAIL; // 中途断：当本段失败，丢段续播
         }
 
         es_pump();
@@ -521,7 +527,7 @@ static bool stream_segment(const char *host, const int port, const char *seg_url
                 const int rc = decode_write();
                 if (rc < 0) {
                     close(sock);
-                    return false;
+                    return SEG_FAIL;
                 }
                 if (rc == 0) break;
                 if (++burst >= DECODE_PER_LOOP * 4) break;
@@ -530,7 +536,7 @@ static bool stream_segment(const char *host, const int port, const char *seg_url
             if (P.serial != my_serial) {
                 close(sock);
                 *aborted = true;
-                return false;
+                return SEG_ABORT;
             }
         }
     }
@@ -588,11 +594,26 @@ static session_end_t play_one(const char *url, const uint32_t my_serial,
             snprintf(last_name, sizeof(last_name), "%s", pl.names[seg_i]);
             ESP_LOGD(TAG, "取段 %s", pl.names[seg_i]);
             bool aborted = false;
-            if (!stream_segment(host, port, seg_url, my_serial, &aborted,
-                                &last_data)) {
-                if (aborted) return SESS_REQUEST;
-                *msg_out = MSG_BADSTREAM;
-                return SESS_FAIL;
+            const seg_result_t sr = stream_segment(host, port, seg_url,
+                                                   my_serial, &aborted,
+                                                   &last_data);
+            if (sr == SEG_ABORT) return SESS_REQUEST;
+            if (sr == SEG_FAIL) {
+                static unsigned seg_fail_streak;
+                if (++seg_fail_streak >= 4) {
+                    seg_fail_streak = 0;
+                    *msg_out = MSG_BADSTREAM;
+                    return SESS_FAIL;
+                }
+                ESP_LOGW(TAG, "段失败，跳段续播（连续 %u）", seg_fail_streak);
+                // 跳到直播边：重新拉列表从最新段开始。
+                cr_hls_playlist_t plx;
+                if (fetch_playlist(host, port, path, &plx)) {
+                    pl = plx;
+                }
+                seg_i = pl.count >= 2 ? pl.count - 2 : 0;
+                last_data = now_ms();
+                continue;
             }
             seg_i++;
             pl_fail = 0;
@@ -694,18 +715,33 @@ void cr_player_start(void)
         return;
     }
     P.ring = malloc(RING_SIZE);
-    if (!P.ring) {
-        ESP_LOGE(TAG, "环形缓冲分配失败");
+    s_pcm = (int16_t *)malloc(1024 * 2 * sizeof(int16_t));
+    s_staging = malloc(STAGING_SIZE);
+    s_aac_arena_bytes = malloc(AAC_ARENA_SIZE);
+    s_pending = malloc(CR_PENDING_SIZE);
+    s_es = malloc(CR_ES_SIZE);
+    s_plbuf = malloc(CR_PLBUF_SIZE);
+    if (!P.ring || !s_pcm || !s_staging || !s_aac_arena_bytes || !s_pending ||
+        !s_es || !s_plbuf) {
+        ESP_LOGE(TAG, "播放缓冲分配失败: free=%u",
+                 (unsigned)esp_get_free_heap_size());
+        free(P.ring); free(s_pcm); free(s_staging); free(s_aac_arena_bytes);
+        free(s_pending); free(s_es); free(s_plbuf);
+        P.ring = NULL; s_pcm = NULL; s_staging = NULL; s_aac_arena_bytes = NULL;
+        s_pending = NULL; s_es = NULL; s_plbuf = NULL;
         vSemaphoreDelete(P.lock);
         P.lock = NULL;
         return;
     }
-    P.dec = AACInitDecoderPre(s_aac_arena.bytes, sizeof(s_aac_arena.bytes));
+    P.dec = AACInitDecoderPre(s_aac_arena_bytes, AAC_ARENA_SIZE);
     if (!P.dec) {
         ESP_LOGE(TAG, "AAC 解码器初始化失败: arena=%u free=%u",
-                 (unsigned)sizeof(s_aac_arena.bytes),
+                 (unsigned)AAC_ARENA_SIZE,
                  (unsigned)esp_get_free_heap_size());
-        free(P.ring);
+        free(P.ring); free(s_pcm); free(s_staging); free(s_aac_arena_bytes);
+        free(s_pending); free(s_es); free(s_plbuf);
+        s_pcm = NULL; s_staging = s_aac_arena_bytes = NULL;
+        s_pending = s_es = NULL; s_plbuf = NULL;
         P.ring = NULL;
         vSemaphoreDelete(P.lock);
         P.lock = NULL;
@@ -721,8 +757,10 @@ void cr_player_start(void)
         ESP_LOGE(TAG, "播放任务创建失败");
         P.dec_open = false;
         P.dec = NULL;
-        free(P.ring);
-        P.ring = NULL;
+        free(P.ring); free(s_pcm); free(s_staging); free(s_aac_arena_bytes);
+        free(s_pending); free(s_es); free(s_plbuf);
+        P.ring = NULL; s_pcm = NULL; s_staging = s_aac_arena_bytes = NULL;
+        s_pending = s_es = NULL; s_plbuf = NULL;
         vSemaphoreDelete(P.lock);
         P.lock = NULL;
     }
@@ -730,7 +768,11 @@ void cr_player_start(void)
 
 void cr_player_play(const uint8_t station_index)
 {
-    if (!P.task || !cr_station_valid(station_index)) return;
+    if (!cr_station_valid(station_index)) return;
+    // 惰性启动：配网门户期堆紧张（见 main.c 注释），播放器等第一次真正要
+    // 出声时才占内存；此后常驻。
+    if (!P.task) cr_player_start();
+    if (!P.task) return;
     P.req_station = station_index;
     P.req_valid = true;
     P.serial++;

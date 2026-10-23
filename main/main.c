@@ -164,12 +164,10 @@ void app_main(void)
     }
 
     // WiFi：有存档凭据自动连，无存档直接开配网热点（esp-wifi-connect 全权管理）。
+    // 播放任务改为惰性启动（第一次按播放才建，见 cr_player_play）——配网门户
+    // 期 httpd+AP 本来就吃满堆（真机实测 GET / 时只剩 9.2KB，页面卡在中途），
+    // 播放器的 10KB 栈 + 10KB 环形缓冲必须让路。
     cr_wifi_start(on_wifi_connected, on_wifi_disconnected);
-
-    // 流媒体播放任务：收流 + 解码 + 写 PCM。解码器状态在 libhelix 内是静态
-    // arena（不占堆），任务建在 WiFi 之后只花 12KB 栈 + 12KB 环形缓冲，
-    // 真机实测两难全时这个顺序最稳。
-    cr_player_start();
 
     if (bsp_lvgl_lock(1000)) {
         cr_app_start();
