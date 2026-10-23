@@ -305,7 +305,7 @@ static esp_err_t i2s_full_duplex_init(void) {
         .role = I2S_ROLE_MASTER,
         // 12x240 帧 ≈ 60ms@48kHz 立体声：流媒体解码比纯音效抖动大，
         // 6x240（30ms）在真机上持续欠载，扬声器出“丝丝”声。
-        .dma_desc_num = 16,
+        .dma_desc_num = 12,
         .dma_frame_num = 240,
         .auto_clear_after_cb = true,
         .auto_clear_before_cb = false,

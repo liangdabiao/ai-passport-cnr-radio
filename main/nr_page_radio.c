@@ -237,8 +237,16 @@ static void status_apply(const nr_play_status_t *st)
             vu_stop();
             break;
     }
-    lv_label_set_text(s_status_label, line);
-    lv_obj_set_style_text_color(s_status_label, lv_color_hex(color), 0);
+    static char last_line[64];
+    static uint32_t last_color;
+    if (strcmp(last_line, line) != 0) {
+        snprintf(last_line, sizeof(last_line), "%s", line);
+        lv_label_set_text(s_status_label, line);
+    }
+    if (last_color != color) {
+        last_color = color;
+        lv_obj_set_style_text_color(s_status_label, lv_color_hex(color), 0);
+    }
 
     if (st->state == NR_PLAY_PLAYING && st->kbps > 0 && st->sample_hz > 0) {
         char info[40];
@@ -246,7 +254,11 @@ static void status_apply(const nr_play_status_t *st)
                  st->kbps, (unsigned)(st->sample_hz / 1000),
                  (unsigned)((st->sample_hz % 1000) / 100),
                  st->channels == 1 ? " 单声道" : "");
-        lv_label_set_text(s_info_label, info);
+        static char last_info[40];
+        if (strcmp(last_info, info) != 0) {
+            snprintf(last_info, sizeof(last_info), "%s", info);
+            lv_label_set_text(s_info_label, info);
+        }
     } else if (st->state == NR_PLAY_IDLE || st->state == NR_PLAY_ERROR) {
         lv_label_set_text(s_info_label, "");
     }

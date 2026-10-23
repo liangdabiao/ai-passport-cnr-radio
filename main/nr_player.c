@@ -37,10 +37,10 @@
 
 static const char *TAG = "nr_player";
 
-#define PLAYER_TASK_STACK 12288
+#define PLAYER_TASK_STACK 10240
 #define PLAYER_TASK_PRIO  6  // 高于 LVGL(4)/输入(5)：解码不能被 UI 挤掉
 
-#define RING_SIZE    (12 * 1024) // 压缩流环形缓冲（≈1.5s@64kbps；LVGL 池 40KB 下的平衡点）
+#define RING_SIZE    (10 * 1024) // 压缩流环形缓冲（≈1.5s@64kbps；LVGL 池 40KB 下的平衡点）
 #define START_MARK   (6 * 1024)  // 攒到这个水位才开始解码（≈0.75s@64kbps）
 #define LOW_WATER    (2 * 1024)  // 解码停点：留一帧余量就回去收流
 #define DECODE_PER_LOOP 4        // 每轮最多解几帧（频繁回来续 DMA，防欠载）
@@ -91,6 +91,7 @@ static player_t P;
 static int16_t s_pcm[1152 * 2]; // 一帧 PCM 上限（1152 样本 × 2 声道）
 static uint8_t s_staging[STAGING_SIZE];
 static uint8_t s_level = NR_VOLUME_DEFAULT; // 用户音量档（播放器侧副本）
+static uint8_t s_applied_codec_vol;      // 已下发的 codec 音量（0 = 需重下发）
 
 static uint8_t nr_level_get(void) { return s_level; }
 
@@ -425,7 +426,7 @@ static int decode_write(void)
         P.fmt_ch = 1;
         // 音效会把 codec 音量压到自己的基准（34%）；换到流格式后必须把电台
         // 音量显式调回用户档，否则电台比音效还小声（真机实测教训）。
-        bsp_audio_set_volume(100); // 音量由软件增益负责，codec 固定满量程
+        s_applied_codec_vol = 0; // 重新打开的 codec 需要重新下发音量
         ESP_LOGI(TAG, "流格式: %uHz %uch %ukbps 音量=%u%% free=%u largest=%u",
                  fi.samprate, fi.nChans, fi.bitrate / 1000,
                  (unsigned)nr_level_get(),
@@ -442,7 +443,10 @@ static int decode_write(void)
     const int out_samples = fi.nChans == 2 ? fi.outputSamps / 2 : fi.outputSamps;
     // 音量：ES8311 的音量曲线 100 档才是 0dB（60 档约 -19dB，真机上小得听不清），
     // 所以 codec 吃满量程，用户档位改成软件增益：100% = 3 倍（约 +9.5dB）。
-    bsp_audio_set_volume(100);
+    if (s_applied_codec_vol != 100) {
+        bsp_audio_set_volume(100);
+        s_applied_codec_vol = 100;
+    }
     // Q8 定点：gain_q8 = 档位/100 × MASTER × 256。整数百分比会把它算成 1/100
     // （真机踩过：60% × 3 / 100 = 1，声音被压小 100 倍）。
     const int32_t gain_q8 = (int32_t)nr_level_get() * NR_GAIN_MASTER * 256 / 100;
