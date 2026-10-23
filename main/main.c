@@ -86,6 +86,8 @@ static void input_task(void *argument)
     input_event_t input;
     for (;;) {
         if (xQueueReceive(s_input_queue, &input, portMAX_DELAY) != pdTRUE) continue;
+        // 按键事件全记录（真机诊断幻影按键用；正常操作一屏也就几条）。
+        ESP_LOGI(TAG, "按键: btn=%d event=%d", (int)input.btn, (int)input.event);
         cr_key_t key;
         if (translate(&input, &key)) cr_app_key(key);
     }
@@ -113,6 +115,8 @@ static esp_err_t input_start(void)
     }
     return ESP_OK;
 }
+
+
 
 // WiFi 事件（esp-wifi-connect 上下文）：只翻状态旗，UI 各页自行轮询。
 static void on_wifi_connected(void)

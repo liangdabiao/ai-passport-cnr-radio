@@ -118,4 +118,5 @@ void cr_app_start(void)
     s_leave = NULL;
     s_screen = NULL;
     cr_app_goto_title();
+
 }

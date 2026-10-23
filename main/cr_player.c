@@ -509,7 +509,9 @@ static seg_result_t stream_segment(const char *host, const int port,
             cr_ts_flush(&s_ts, es_sink, NULL);
             es_pump();
             close(sock);
-            return true; // 切片完成（服务端关流）
+            return SEG_OK; // 切片完成（服务端关流）——真凶修复：bool→三态
+                           // 改造时此处曾返回 true(=SEG_ABORT)，每个切片下完
+                           // 都被误判为"新请求中断"，播放 ~10s 即停。
         } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
             close(sock);
             return SEG_FAIL; // 中途断：当本段失败，丢段续播
@@ -684,7 +686,7 @@ static void player_task(void *arg)
     (void)arg;
     for (;;) {
         if (!P.req_valid) {
-            if (P.st.state != CR_PLAY_IDLE) publish(CR_PLAY_IDLE, NULL);
+            if (P.st.state != CR_PLAY_IDLE) publish(CR_PLAY_IDLE, "");
             vTaskDelay(pdMS_TO_TICKS(100));
             continue;
         }
