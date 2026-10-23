@@ -123,5 +123,5 @@ it is worth checking the descriptor on every first build of a new derived app.
 
 - [Keeping application logic on the host](host-testable-app-logic.md) — what these
   tests cover.
-- [Chinese Checkers application record](astock-quote/README.md) — this repository's record; the same techniques applied to Chinese Checkers.
+- [Net Radio application record](net-radio/README.md) — this repository's record; the same techniques applied to Chinese Checkers.
   produces.

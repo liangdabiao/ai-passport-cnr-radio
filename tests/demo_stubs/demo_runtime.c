@@ -31,6 +31,68 @@ void lv_label_set_text(lv_obj_t *object, const char *text) {
     snprintf(test_status, sizeof(test_status), "%s", text);
 }
 void bsp_display_backlight(uint8_t percent) { (void)percent; }
+// demo_test_stubs.h / ui_pixel.h 声明了下面一批 LVGL 与拟物控件符号但没有定
+// 义：ELF 链接器靠 --gc-sections 裁掉不可达引用掩盖了缺口，PE（zig/lld-link）
+// 不裁就暴露。全部补上无操作定义，让宿主测试不再依赖链接器的裁剪行为。
+void lv_screen_load(lv_obj_t *screen) { (void)screen; }
+void lv_obj_delete(lv_obj_t *object) { (void)object; }
+uint32_t lv_color_hex(uint32_t color) { return color; }
+lv_obj_t *lv_obj_create(lv_obj_t *parent) { (void)parent; return (lv_obj_t *)0; }
+lv_obj_t *lv_label_create(lv_obj_t *parent) { (void)parent; return (lv_obj_t *)0; }
+void lv_obj_set_size(lv_obj_t *object, int width, int height) {
+    (void)object; (void)width; (void)height;
+}
+void lv_obj_set_width(lv_obj_t *object, int width) { (void)object; (void)width; }
+void lv_obj_align(lv_obj_t *object, int align, int x, int y) {
+    (void)object; (void)align; (void)x; (void)y;
+}
+void lv_obj_center(lv_obj_t *object) { (void)object; }
+void lv_label_set_long_mode(lv_obj_t *object, int mode) { (void)object; (void)mode; }
+void lv_obj_set_style_radius(lv_obj_t *object, int radius, int selector) {
+    (void)object; (void)radius; (void)selector;
+}
+void lv_obj_set_style_bg_color(lv_obj_t *object, uint32_t color, int selector) {
+    (void)object; (void)color; (void)selector;
+}
+void lv_obj_set_style_border_width(lv_obj_t *object, int width, int selector) {
+    (void)object; (void)width; (void)selector;
+}
+void lv_obj_set_style_text_color(lv_obj_t *object, uint32_t color, int selector) {
+    (void)object; (void)color; (void)selector;
+}
+void lv_obj_set_style_text_align(lv_obj_t *object, int align, int selector) {
+    (void)object; (void)align; (void)selector;
+}
+void lv_obj_set_style_text_font(lv_obj_t *object, const lv_font_t *font, int selector) {
+    (void)object; (void)font; (void)selector;
+}
+void lv_label_set_text_fmt(lv_obj_t *object, const char *format, ...) {
+    (void)object; (void)format;
+}
+static lv_timer_t test_timers[4];
+static unsigned test_timer_count;
+lv_timer_t *lv_timer_create(void (*callback)(lv_timer_t *), unsigned period, void *data) {
+    (void)callback; (void)period; (void)data;
+    if (test_timer_count >= 4) return (lv_timer_t *)0;
+    return &test_timers[test_timer_count++];
+}
+void lv_timer_delete(lv_timer_t *timer) { (void)timer; }
+int esp_sleep_get_wakeup_cause(void) { return 0; }
+esp_err_t esp_wifi_scan_get_ap_num(uint16_t *count) { (void)count; return 0; }
+esp_err_t esp_wifi_scan_get_ap_records(uint16_t *count, wifi_ap_record_t *records) {
+    (void)count; (void)records;
+    return 0;
+}
+lv_obj_t *ui_pixel_screen_create(const char *title) { (void)title; return (lv_obj_t *)0; }
+lv_obj_t *ui_pixel_mascot_create(lv_obj_t *parent, int x, int y) {
+    (void)parent; (void)x; (void)y;
+    return (lv_obj_t *)0;
+}
+lv_obj_t *ui_pixel_panel_create(lv_obj_t *parent, int x, int y, int w, int h,
+                                uint32_t color) {
+    (void)parent; (void)x; (void)y; (void)w; (void)h; (void)color;
+    return (lv_obj_t *)0;
+}
 void ui_pixel_mascot_jump(lv_obj_t *mascot) { (void)mascot; }
 void ui_pixel_set_selected(lv_obj_t *panel, bool selected, bool enabled) {
     (void)panel; (void)selected; (void)enabled;

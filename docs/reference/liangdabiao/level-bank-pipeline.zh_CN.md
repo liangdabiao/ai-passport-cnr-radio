@@ -144,7 +144,7 @@ instruction: <题面，最长 240 字>
 
 ## 相关
 
-- [中国跳棋应用档案](astock-quote/README.zh_CN.md) —— 本仓库的应用档案，同样的技术在中国跳棋里的用法。
+- [网络电台应用档案](net-radio/README.zh_CN.md) —— 本仓库的应用档案，同样的技术在中国跳棋里的用法。
 - [为 LVGL 裁剪中文字库子集](cjk-font-subsetting-for-lvgl.zh_CN.md) —— 同一个
   模块的另一个消费者。
 - [把应用逻辑留在主机上](host-testable-app-logic.zh_CN.md) —— 读这些表的引擎与

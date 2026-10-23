@@ -97,7 +97,7 @@ grep -A2 "^ \.rodata\.glyph_bitmap" build/firmware/<sha>/FoloToy-AI-Passport.map
 
 ## 相关
 
-- [中国跳棋应用档案](astock-quote/README.zh_CN.md) —— 本仓库的应用档案，同样的技术在中国跳棋里的用法。
+- [网络电台应用档案](net-radio/README.zh_CN.md) —— 本仓库的应用档案，同样的技术在中国跳棋里的用法。
 - [把关卡库整理成生成的 C 数组](level-bank-pipeline.zh_CN.md) —— 清单的另一半
   来源。
 - [让字库度量决定版式](font-metrics-driven-layout.zh_CN.md) —— 生成的这三档字号

@@ -110,7 +110,7 @@ Two details are worth writing down, because getting either wrong produces a
 
 ## Related
 
-- [Chinese Checkers application record](astock-quote/README.md) — this repository's record; the same techniques applied to Chinese Checkers.
+- [Net Radio application record](net-radio/README.md) — this repository's record; the same techniques applied to Chinese Checkers.
   serve.
 - [Turning a level bank into generated C tables](level-bank-pipeline.md) — the
   other half of the inventory.

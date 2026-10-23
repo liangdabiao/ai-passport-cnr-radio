@@ -28,7 +28,8 @@ CONFIG_LV_FONT_MONTSERRAT_20=y
 # 三字经应用要同时持有约 40~60 个控件(首页一行 3 个对象、认字卡三格田字格各 13 个),
 # 24KB 会不够;64KB 留出余量,仍只占内部 RAM 的一小部分(本板无 PSRAM,但也无 Wi-Fi/BT
 # 运行时占用)。
-CONFIG_LV_MEM_SIZE_KILOBYTES=96
+# LVGL9: LV_MEM_SIZE(字节) 生效；KILOBYTES 已弃用，24KB 意图改用下一行表达
+CONFIG_LV_MEM_SIZE=40960
 
 # --- 中文字库 ---
 # 界面文字全部由 tools/sanzijing/gen_font.py 生成的 16/24/32 三档子集提供
@@ -52,3 +53,8 @@ CONFIG_ESP_MAIN_TASK_STACK_SIZE=12288
 # 关闭。本应用不用蓝牙；C3 的内部堆只有 ~106KB，NimBLE 常驻要吃掉 ~70KB ——
 # 棋盘视图有 225 个棋子对象、AI 搜索任务要 12KB 栈，这些堆省下来都用得上。
 # （画刊应用同一决定，真机实测省出 ~70KB。）
+
+# ADC 按键消抖：WiFi 发射时电源噪声会让单次采样漂进相邻键的电压区间
+# （真机幻影按键：选中框自己跳）。8 次采样取均值 + 组件级 3 tick 消抖。
+CONFIG_ADC_BUTTON_SAMPLE_TIMES=4
+CONFIG_BUTTON_DEBOUNCE_TICKS=7

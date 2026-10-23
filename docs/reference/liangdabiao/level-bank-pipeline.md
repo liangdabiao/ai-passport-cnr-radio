@@ -170,7 +170,7 @@ level that looks playable and cannot be completed.
 
 ## Related
 
-- [Chinese Checkers application record](astock-quote/README.md) — this repository's record; the same techniques applied to Chinese Checkers.
+- [Net Radio application record](net-radio/README.md) — this repository's record; the same techniques applied to Chinese Checkers.
 - [Subsetting a CJK font for LVGL](cjk-font-subsetting-for-lvgl.md) — the other
   consumer of this module.
 - [Keeping application logic on the host](host-testable-app-logic.md) — how the

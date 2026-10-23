@@ -17,9 +17,9 @@ run_static_checks() {
     # 脱节。这一步要 fontTools 才能逐个码点核对母字体覆盖，而 CI 镜像不装
     # fontTools —— 缺依赖时明确跳过并说明，不假装通过。
     if python3 -c "import fontTools" >/dev/null 2>&1; then
-        PYTHONDONTWRITEBYTECODE=1 python3 tools/astock-quote/gen_font.py --check
+        PYTHONDONTWRITEBYTECODE=1 python3 tools/net-radio/gen_font.py --check
     else
-        echo "skip: tools/astock-quote/gen_font.py --check（当前 python3 无 fontTools；字库清单同步未校验）" >&2
+        echo "skip: tools/net-radio/gen_font.py --check（当前 python3 无 fontTools；字库清单同步未校验）" >&2
     fi
 
     actionlint_bin="${ACTIONLINT_BIN:-}"
@@ -41,41 +41,25 @@ run_static_checks() {
         -o "${test_dir}/test_demo_navigation"
     "${test_dir}/test_demo_navigation"
 
-    # 本应用的纯逻辑层：代码推断、行情解析（东财 JSON）、交易时段、自选
-    # 名单、音量与折行。它们刻意不依赖 ESP-IDF/LVGL，宿主机直接编译。
+    # 本应用的纯逻辑层：电台清单、音量档位、HTTP 头解析与 chunked 剥框。
+    # 它们刻意不依赖 ESP-IDF/LVGL，宿主机直接编译。
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_sq_symbol.c main/sq_symbol.c \
-        -o "${test_dir}/test_sq_symbol"
-    "${test_dir}/test_sq_symbol"
+        tests/test_nr_station.c main/nr_station.c \
+        -o "${test_dir}/test_nr_station"
+    "${test_dir}/test_nr_station"
 
-    # 行情解析：真实报文形状、停牌占位（"-" 必须无效而不是 0）、坏 JSON、
-    # 快照序列化回读（cJSON 用 tests/cjson 的单文件同源版）。
-    "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain -Itests/cjson \
-        tests/test_sq_quote.c main/sq_quote.c tests/cjson/cJSON.c \
-        -o "${test_dir}/test_sq_quote"
-    "${test_dir}/test_sq_quote"
+    # 音量档位。
+    "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
+        tests/test_nr_volume.c main/nr_volume.c \
+        -o "${test_dir}/test_nr_volume"
+    "${test_dir}/test_nr_volume"
 
-    # 交易时段边界（集合竞价/午休/收盘后/周末，北京时间）。
+    # 流媒体协议解析：响应头（分片到达/1xx 跳过/3xx Location/icy 元数据）
+    # 与 chunked 状态机（逐字节喂、输出容量不足续传、尾注、坏流）。
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_sq_market.c main/sq_market.c \
-        -o "${test_dir}/test_sq_market"
-    "${test_dir}/test_sq_market"
-
-    # 自选名单：预设、增删去重（同码两域并存）、上限 8、序列化回读。
-    "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_sq_watch.c main/sq_watch.c main/sq_symbol.c \
-        -o "${test_dir}/test_sq_watch"
-    "${test_dir}/test_sq_watch"
-
-    # 音量档位与折行。
-    "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_sq_volume.c main/sq_volume.c \
-        -o "${test_dir}/test_sq_volume"
-    "${test_dir}/test_sq_volume"
-    "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_sq_wrap.c main/sq_wrap.c \
-        -o "${test_dir}/test_sq_wrap"
-    "${test_dir}/test_sq_wrap"
+        tests/test_nr_http.c main/nr_http.c \
+        -o "${test_dir}/test_nr_http"
+    "${test_dir}/test_nr_http"
 
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Icomponents/bsp/src \
         tests/test_bsp_display_rounding.c components/bsp/src/bsp_display_rounding.c \

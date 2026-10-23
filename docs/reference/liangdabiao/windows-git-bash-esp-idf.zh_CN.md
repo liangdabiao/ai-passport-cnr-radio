@@ -107,4 +107,4 @@ git worktree remove --force /d/esp/wq-baseline && git worktree prune
 ## 相关文档
 
 - [把应用逻辑留在主机上](host-testable-app-logic.zh_CN.md) —— 这些测试覆盖了什么。
-- [中国跳棋应用档案](astock-quote/README.zh_CN.md) —— 本仓库的应用档案，同样的技术在中国跳棋里的用法。
+- [网络电台应用档案](net-radio/README.zh_CN.md) —— 本仓库的应用档案，同样的技术在中国跳棋里的用法。

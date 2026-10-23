@@ -1,0 +1,85 @@
+name	cat	code	ctype	bytes	br	icy_name	url_http	verdict
+101 SMOOTH JAZZ	外语	200	audio/mpeg	400000	192	101 SMOOTH JAZZ WEST	http://jking.cdnstream1.com/b22139_128mp3	OK
+101 SMOOTH JAZZ MELLOW M	外语	200	audio/mpeg	400000	192	101 SMOOTH JAZZ MELLOW MIX	http://streaming.live365.com/b48071_128mp3	OK
+SomaFM Secret Agent (128	外语	200	audio/mpeg	375968	128	Secret Agent: The soundtrack for your st	http://ice6.somafm.com/secretagent-128-mp3	OK
+SMOOTH JAZZ 24/7	外语	200	audio/mpeg	278800	192	SMOOTH JAZZ 247 WEST	http://jking.cdnstream1.com/b75154_128mp3	OK
+.977 Smooth Jazz	外语	200	audio/mpeg	263732	128	Smooth Jazz	http://29319.live.streamtheworld.com:3690/977_SMOOJAZZ_SC	OK
+Nostalgie New York	外语	200	audio/mpeg	200561	128	Nostalgie - New York	http://c32.radioboss.fm:8139/stream	OK
+The Jazz Groove - East	外语	200	audio/mpeg	136456	128	Jazz Groove Mix 2 (Free FLAC)	http://east-mp3-128.streamthejazzgroove.com/stream	OK
+Classic Vinyl HD	外语	400	text/html	248			http://icecast.walmradio.com:8443/classic	-
+Adroit Jazz Underground	外语	400	text/html	248			http://icecast.walmradio.com:8443/jazz	-
+SomaFM Left Coast 70s (3	外语2	200	audio/mpeg	400000	320	Left Coast 70s: Mellow album rock from t	http://ice5.somafm.com/seventies-320-mp3	OK
+SomaFM Heavyweight Regga	外语2	200	audio/mpeg	400000	320	SomaFM Reggae: Stuff [SomaFM]	http://ice5.somafm.com/reggae-256-mp3	OK
+SomaFM Boot Liquor (320k	外语2	200	audio/mpeg	400000	320	Boot Liquor: Americana roots music for C	http://ice6.somafm.com/bootliquor-320-mp3	OK
+SomaFM Seven Inch Soul (	外语2	200	audio/mpeg	400000	160	Seven Inch Soul: Vintage soul tracks fro	http://ice6.somafm.com/7soul-128-mp3	OK
+SomaFM Folk Forward (128	外语2	200	audio/mpeg	380084	128	Folk Forward: Indie Folk, Alt-folk and t	http://ice5.somafm.com/folkfwd-128-mp3	OK
+SomaFM Fluid (128k MP3)	外语2	200	audio/mpeg	380064	128	Fluid: Drown in the electronic sound of 	http://ice5.somafm.com/fluid-128-mp3	OK
+SomaFM Left Coast 70s (1	外语2	200	audio/mpeg	377372	128	Left Coast 70s: Mellow album rock from t	http://ice6.somafm.com/seventies-128-mp3	OK
+SomaFM Groove Salad (128	外语2	200	audio/mpeg	375121	128	Groove Salad: a nicely chilled plate of 	http://ice6.somafm.com/groovesalad-128-mp3	OK
+SomaFM Lush (128k MP3)	外语2	200	audio/mpeg	374651	128	Lush: Mostly female vocals with an elect	http://ice6.somafm.com/lush-128-mp3	OK
+SomaFM Underground 80s (	外语2	200	audio/mpeg	250894	128	Underground Eighties: UK Synthpop and a 	http://ice2.somafm.com/u80s-128-mp3	OK
+SomaFM Drone Zone (128k 	外语2	200	audio/mpeg	211415	128	Drone Zone: Atmospheric ambient space mu	http://ice2.somafm.com/dronezone-128-mp3	OK
+SomaFM PopTron (128k MP3	外语2	200	audio/mpeg	94519	128	PopTron: Electro-Pop and Indie Dance Roc	http://ice2.somafm.com/poptron-128-mp3	OK
+SomaFM Beat Blender (128	外语2	200	audio/mpeg	94483	128	Beat Blender: A late night blend of deep	http://ice2.somafm.com/beatblender-128-mp3	OK
+SomaFM Sonic Universe (1	外语2	200	audio/mpeg	52267	128	Sonic Universe: Nu Jazz plus avant-garde	http://ice2.somafm.com/sonicuniverse-128-mp3	OK
+合肥故事广播	故事	200	audio/mpeg	144191			http://lhttp.qingting.fm/live/1961/64k.mp3	OK
+山西广播电视台故事广播	故事	200	audio/mpeg	114793			http://lhttp.qingting.fm/live/5022511/64k.mp3	OK
+江西故事广播	故事	200	audio/mpeg	111993			http://lhttp.qtfm.cn/live/20500092/64k.mp3	OK
+芜湖音乐故事广播	故事	200	audio/mpeg	106393			http://lhttp.qtfm.cn/live/5028/64k.mp3	OK
+济南故事广播	故事	200	audio/mpeg	103593			http://lhttp.qtfm.cn/live/1672/64k.mp3	OK
+蛤蜊讲故事	故事	200	audio/x-mpegurl	1699			http://rscdn.ajmide.com/r_2951/nglive_2951.m3u8	-
+马鞍山生活故事广播	故事	200	audio/x-mpegurl	1598			http://rscdn.ajmide.com/r_139/nglive_139.m3u8	-
+青岛故事广播	故事	200	application/vnd.apple.mpegurl	1137			http://video10.qtv.com.cn/zhibogsgb/manifest.m3u8	-
+江西故事广播	故事	200	application/vnd.apple.mpegurl	474			http://live.ximalaya.com/radio-first-page-app/live/613/64.m3u8	-
+贵州故事广播	故事	200	application/x-mpegurl	375			http://satellitepull.cnr.cn/live/wx32gzgsgb/playlist.m3u8?wsSession=d8b4488aebb72eb396f72a83-174701428079898&wsIPSercert=5bb043949891952939522be8c9bd5410	-
+江苏故事广播	故事	200	application/vnd.apple.mpegurl	342			http://lzlive.vojs.cn/rWjyus9/92/live.m3u8?	-
+河北经济广播（故事广播）	故事	200	application/vnd.apple.mpegurl	336			http://radio.pull.hebtv.com/live/hebjj.m3u8	-
+南宁故事广播	故事	200	application/vnd.apple.mpegurl	237			http://hls.nntv.cn/nnradio/895_24.m3u8	-
+上海新闻广播	新闻	200	audio/mpeg	184788			http://lhttp.qingting.fm/live/270/64k.mp3	OK
+新闻联播	新闻	200	audio/mpeg	184426	64	RFI chinois64	http://rfienchinois64k.ice.infomaniak.ch//rfienchinois-64.mp3	OK
+故事广播-阿基米德故事会	新闻	200	audio/mpeg	130192			http://lhttp.qtfm.cn/live/20500182/64k.mp3	OK
+500首华语经典	新闻	200	audio/mpeg	129865			http://lhttp.qtfm.cn/live/5022308/64k.mp3	OK
+怀集音乐之声	新闻	200	audio/mpeg	125992			http://lhttp.qingting.fm/live/4804/64k.mp3	OK
+北京新闻广播	新闻	200	audio/mpeg	124593			http://lhttp.qtfm.cn/live/339/64k.mp3	OK
+CNR-1 中国之声	新闻	200	audio/mpeg	124592			http://lhttp.qtfm.cn/live/15318317/64k.mp3	OK
+90.7mixfm	新闻	200	audio/mpeg	124592			http://lhttp.qingting.fm/live/15318146/64k.mp3	OK
+深圳新闻广播	新闻	200	audio/mpeg	124501			http://lhttp.qingting.fm/live/1270/64k.mp3	OK
+广东音乐之声	新闻	200	audio/mpeg	123193			http://lhttp.qtfm.cn/live/1260/64k.mp3	OK
+广东交通之声	新闻	200	audio/mpeg	123192			http://lhttp.qtfm.cn/live/1262/64k.mp3	OK
+广东珠江经济台	新闻	200	audio/mpeg	123148			http://lhttp.qtfm.cn/live/1259/64k.mp3	OK
+广东新闻广播	新闻	200	audio/mpeg	123148			http://lhttp.qtfm.cn/live/1254/64k.mp3	OK
+国际新闻	新闻	200	audio/mpeg	121792			http://lhttp.qtfm.cn/live/20500172/64k.mp3	OK
+AsiaFM 亚洲粤语台	新闻	200	audio/mpeg	121748			http://lhttp.qtfm.cn/live/15318569/64k.mp3	OK
+广东股市广播	新闻	200	audio/mpeg	118993			http://lhttp.qtfm.cn/live/4847/64k.mp3	OK
+广州金曲音乐广播	新闻	200	audio/mpeg	113393			http://lhttp.qingting.fm/live/20192/64k.mp3	OK
+两广之声音乐台	新闻	200	audio/mpeg	113348			http://lhttp.qtfm.cn/live/20500149/64k.mp3	OK
+安徽小说评书广播	新闻	200	audio/mpeg	111993			http://lhttp.qtfm.cn/live/1951/64k.mp3	OK
+第一财经	新闻	200	audio/mpeg	103594			http://lhttp.qingting.fm/live/276/64k.mp3	OK
+清晨音乐台	新闻	200	audio/mpeg	103593			http://lhttp.qingting.fm/live/4915/64k.mp3	OK
+雨声轻音乐	新闻	000		0			http://stream.zeno.fm/689zc32y4x8uv	-
+RTHK Radio-1	新闻	000		0			http://stm.rthk.hk/radio1	-
+德云社相声合集	新闻	000		0			http://stream.zeno.fm/yqawwmweq8mtv	-
+Lam Rim	新闻	000		0			http://199.180.72.2:9097/lamrim	-
+听云相声台	曲艺	200	audio/mpeg	148400		听云相声台	http://m.tyradio.uk/tyxs.mp3	OK
+听云评书台	曲艺2	200	audio/mpeg	148400		听云评书台	http://m.tyradio.uk/typs.mp3	OK
+衡水交通评书广播	曲艺2	200	audio/mpeg	128792			http://lhttp.qtfm.cn/live/5021940/64k.mp3	OK
+Big B Radio亚洲音乐台	音乐	200	audio/mpeg	365213	128	Big B Radio #AsianPop	http://antares.dribbcast.com/proxy/apop?mp=/s	OK
+河南星河音乐广播	音乐	200	audio/mpeg	144191			http://lhttp.qingting.fm/live/20210755/64k.mp3	OK
+上海音乐广播	音乐	200	audio/mpeg	142791			http://lhttp.qingting.fm/live/273/64k.mp3	OK
+北京音乐广播	音乐	200	audio/mpeg	133972			http://lhttp.qtfm.cn/live/332/64k.mp3	OK
+云梦音乐台	音乐	200	audio/mpeg	128792			http://lhttp.qtfm.cn/live/20500187/64k.mp3	OK
+AsiaFM亚洲天空台	音乐	200	audio/mpeg	123193			http://lhttp.qingting.fm/live/20071/64k.mp3	OK
+AsiaFM亚洲音乐台	音乐	200	audio/mpeg	123192			http://lhttp.qingting.fm/live/4581/64k.mp3	OK
+顺德音乐之声	音乐	200	audio/mpeg	123192			http://lhttp.qtfm.cn/live/20500150/64k.mp3	OK
+动听音乐台	音乐	200	audio/mpeg	123192			http://lhttp-hw.qtfm.cn/live/5022107/64k.mp3	OK
+MY FM全国音乐频道——FM106.3  长春	音乐	200	audio/mpeg	123192			http://lhttp.qingting.fm/live/4984/64k.mp3	OK
+MY FM全国音乐频道·广州	音乐	200	audio/mpeg	121792			http://lhttp.qingting.fm/live/20194/64k.mp3	OK
+50首经典古典音乐	音乐	200	audio/mpeg	120392			http://lhttp-hw.qtfm.cn/live/5022308/64k.mp3	OK
+CityFM城市音乐台	音乐	200	audio/mpeg	120160			http://lhttp.qtfm.cn/live/20500153/64k.mp3	OK
+AsiaFM亚洲经典台	音乐	200	audio/mpeg	114793			http://lhttp.qingting.fm/live/5021912/64k.mp3	OK
+CRI劲曲调频 HIT FM（成都）	音乐	200	audio/mpeg	114748			http://lhttp.qingting.fm/live/15318703/64k.mp3	OK
+高阳县怀旧金曲964	音乐	200	audio/mpeg	114747			http://lhttp.qingting.fm/live/5021555/64k.mp3?	OK
+星空电台 STAR RADIO	音乐	200	audio/mpeg	113114			http://lhttp-hw.qtfm.cn/live/5022379/64k.mp3	OK
+北京交通广播	音乐	200	audio/mpeg	111993			http://lhttp.qingting.fm/live/336/64k.mp3	OK
+长沙BIG RADIO流行音乐广播	音乐	200	audio/mpeg	107793			http://lhttp.qingting.fm/live/20847/64k.mp3	OK
+上海经典音乐广播	音乐	200	audio/mpeg	103594			http://lhttp.qingting.fm/live/267/64k.mp3	OK
