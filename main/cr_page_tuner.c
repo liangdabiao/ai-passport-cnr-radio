@@ -282,17 +282,6 @@ static void tick_cb(lv_timer_t *timer)
     cr_player_status(&st);
     status_apply(&st);
 
-    // 提示行随可听状态切换（播放中只认长按的交互说明）。
-    static bool s_hint_audible;
-    const bool audible = st.state == CR_PLAY_PLAYING ||
-                         st.state == CR_PLAY_CONNECT ||
-                         st.state == CR_PLAY_BUFFERING;
-    if (audible != s_hint_audible) {
-        s_hint_audible = audible;
-        cr_hint_set(s_hint_label,
-                    audible ? "播放中：长按上下音量 · 长按OK暂停"
-                            : "OK 播放 · 上下换台 · 长按调音量");
-    }
 }
 
 // -------------------------------------------------------------- 页面 -------
@@ -344,7 +333,7 @@ lv_obj_t *cr_page_tuner_enter(void)
 
     vu_create(card);
 
-    s_hint_label = cr_hint_create(card, "OK 播放 · 上下换台 · 长按调音量");
+    s_hint_label = cr_hint_create(card, "上下换台 · OK 播放暂停 · 长按音量");
 
     // 音量浮层（最后创建，压在最上层；初始隐藏）。
     s_vol_panel = lv_obj_create(card);
@@ -408,45 +397,15 @@ void cr_page_tuner_leave(void)
     s_vol_panel = s_vol_bar = s_vol_text = NULL;
 }
 
-// 播放中只认长按（幻影根治，2026-10-23 真机实测）：
-// 幻影=功放地线电流把 ADC 分压拉进键区 350ms+，全部表现为「单击」；
-// 1500ms 长按无法被 350ms 塌陷伪造。因此：
-//   播放中：UP/DOWN/OK 单击忽略；长按上下=音量；长按 OK=暂停（留在本页）。
-//   暂停/待机：无音频即无噪声，单击全部可用（OK=继续，上下=换台），
-//              长按 OK=回标题页。
+// 三键语义（与家族标准一致；幻影按键根源已除——真凶修复后连续播放 4 分钟
+// 零幻影实测，功放电流稳定不再扰 ADC）：
+//   上下单击   换台（播放中热切换）
+//   OK 单击    播放/暂停
+//   长按上下   音量 ±
+//   长按 OK    回标题页并停播
 
 void cr_page_tuner_key(const cr_key_t key)
 {
-    cr_play_status_t st;
-    cr_player_status(&st);
-    const bool audible = st.state == CR_PLAY_PLAYING ||
-                         st.state == CR_PLAY_CONNECT ||
-                         st.state == CR_PLAY_BUFFERING;
-
-    if (audible) {
-        // ---- 出声中：只认长按 ----
-        switch (key) {
-            case CR_KEY_UP:
-            case CR_KEY_DOWN:
-            case CR_KEY_OK:
-                break; // 单击在播放中一律忽略（幻影全是单击）
-            case CR_KEY_VOL_UP:
-                cr_app_volume_step(1);
-                break;
-            case CR_KEY_VOL_DOWN:
-                cr_app_volume_step(-1);
-                break;
-            case CR_KEY_BACK: // 长按 OK：暂停，留在本页
-                cr_sfx_play(CR_TONE_BACK);
-                cr_player_stop();
-                break;
-            default:
-                break;
-        }
-        return;
-    }
-
-    // ---- 暂停/待机：单击全部可用 ----
     switch (key) {
         case CR_KEY_UP:
         case CR_KEY_DOWN: {
@@ -456,9 +415,23 @@ void cr_page_tuner_key(const cr_key_t key)
             cr_app_set_station(index);
             cr_sfx_play(CR_TONE_MOVE);
             station_apply();
+            // 正在收听：立即切台；待机/暂停：只换选择。
+            cr_play_status_t st;
+            cr_player_status(&st);
+            if (st.state != CR_PLAY_IDLE && st.state != CR_PLAY_ERROR) {
+                cr_player_play(index);
+            }
             break;
         }
-        case CR_KEY_OK:
+        case CR_KEY_OK: {
+            cr_play_status_t st;
+            cr_player_status(&st);
+            if (st.state == CR_PLAY_CONNECT || st.state == CR_PLAY_BUFFERING ||
+                st.state == CR_PLAY_PLAYING) {
+                cr_player_stop();
+                cr_sfx_play(CR_TONE_BACK);
+                break;
+            }
             if (!cr_app_wifi_connected()) {
                 cr_sfx_play(CR_TONE_DECLINED);
                 lv_label_set_text(s_status_label, "未联网 · 长按确定去配网");
@@ -471,13 +444,16 @@ void cr_page_tuner_key(const cr_key_t key)
             cr_sfx_play(CR_TONE_ENTER);
             cr_player_play(cr_app_station());
             break;
+        }
         case CR_KEY_VOL_UP:
+            cr_app_volume_step(1);
+            break;
         case CR_KEY_VOL_DOWN:
-            // 待机时也允许长按调音量（无噪声，顺手）
-            cr_app_volume_step(key == CR_KEY_VOL_UP ? 1 : -1);
+            cr_app_volume_step(-1);
             break;
         case CR_KEY_BACK:
             cr_sfx_play(CR_TONE_BACK);
+            cr_player_stop();
             cr_app_goto_title();
             break;
         default:
